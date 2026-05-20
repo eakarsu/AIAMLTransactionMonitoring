@@ -1,0 +1,13 @@
+{
+  "name": "ai-aml-transaction-monitoring",
+  "version": "1.0.0",
+  "description": "AI-powered AML transaction monitoring + sanctions screening platform (BSA compliance, SAR/CTR filing, KYC, EDD, investigations)",
+  "private": true,
+  "scripts": {
+    "start": "bash start.sh",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm start",
+    "seed": "cd backend && node seed/seed.js",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  }
+}
