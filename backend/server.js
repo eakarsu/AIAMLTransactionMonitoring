@@ -71,6 +71,15 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 // Custom domain compliance views (network graph, timeline, heatmap, funnel)
 app.use('/api/custom-views', require('./routes/customViews'));
 
+// Pass 7 — backlog implementation
+app.use('/api/peer-benchmarks', require('./routes/peerBenchmarks'));    // MECHANICAL #3
+app.use('/api/ingestion',       require('./routes/ingestion'));         // NEEDS-CREDS (503 stub) + product-decision default
+app.use('/api/case-workflow',   require('./routes/caseWorkflow'));      // NEEDS-PRODUCT-DECISION default
+app.use('/api/escalation',      require('./routes/escalation'));        // NEEDS-PRODUCT-DECISION default
+app.use('/api/fincen-exports',  require('./routes/fincenExport'));      // NEEDS-SCHEMA
+app.use('/api/advisory',        require('./routes/advisory'));          // TOO-RISKY → advisory-only
+app.use('/api/structuring-risk', require('./routes/structuringRisk'));
+
 app.listen(PORT, () => {
   console.log(`\nAI AML Transaction Monitoring API running on http://localhost:${PORT}\n`);
 });

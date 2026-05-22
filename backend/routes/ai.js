@@ -461,6 +461,58 @@ const SAMPLES = {
       values: { seed_id: 'C-4435', depth: 2 },
     },
   ],
+
+  // Pass 7 — MECHANICAL backlog
+  'adverse-media-screen': [
+    {
+      label: 'Vladimir Petrov — Russian Deputy Energy Minister',
+      values: { name: 'Vladimir Petrov', country: 'RU', context: 'PEP onboarding, $14.2M private banking, alleged kickback news in EU press.' },
+    },
+    {
+      label: 'Sahel Mining Corp — ML high-risk',
+      values: { name: 'Sahel Mining Corp', country: 'ML', context: 'Mali mining export licensing controversy, PEP-linked BO.' },
+    },
+    {
+      label: 'Crypto Bridge SARL — mixer exposure',
+      values: { name: 'Crypto Bridge SARL', country: 'CH', context: 'Outbound to Tornado Cash, prior FINMA enforcement rumors.' },
+    },
+    {
+      label: 'Caribbean Trust Partners — Cayman nominee',
+      values: { name: 'Caribbean Trust Partners', country: 'KY', context: 'Pandora Papers reference; 100% nominee owner.' },
+    },
+    {
+      label: 'Maria Rossi — low-risk individual',
+      values: { name: 'Maria Rossi', country: 'IT', context: 'Salary-funded retail customer, no known adverse media.' },
+    },
+  ],
+
+  'kyc-onboarding-prescreen': [
+    {
+      label: 'Apex Trading LLC — US corporate onboarding',
+      values: { customer_id: 'C-4421', applicant_name: 'Apex Trading LLC', country: 'US', type: 'corporate',
+        notes: 'New US trading firm, projected $20M annual throughput.' },
+    },
+    {
+      label: 'Vladimir Petrov — PEP private banking applicant',
+      values: { customer_id: 'C-4426', applicant_name: 'Vladimir Petrov', country: 'RU', type: 'individual',
+        notes: 'PEP onboarding, Russian Deputy Energy Minister, $14.2M initial deposit claimed family wealth.' },
+    },
+    {
+      label: 'Sahel Mining Corp — Mali mining',
+      values: { customer_id: 'C-4429', applicant_name: 'Sahel Mining Corp', country: 'ML', type: 'corporate',
+        notes: 'Mining sector, PEP-linked BO, high-risk jurisdiction.' },
+    },
+    {
+      label: 'Caribbean Trust Partners — Cayman trust',
+      values: { customer_id: 'C-4435', applicant_name: 'Caribbean Trust Partners', country: 'KY', type: 'trust',
+        notes: 'Cayman trust, 100% nominee owner, OFAC 50% rule under review.' },
+    },
+    {
+      label: 'Maria Rossi — IT retail individual',
+      values: { customer_id: 'C-4424', applicant_name: 'Maria Rossi', country: 'IT', type: 'individual',
+        notes: 'Salary-funded individual, $5k/mo deposits, no adverse media.' },
+    },
+  ],
 };
 
 // GET /api/ai/samples?feature=<verb>
@@ -788,6 +840,64 @@ router.post('/network-analysis', async (req, res) => {
     const result = await ai.networkAnalysis(seed, txns, owners);
     if (depth != null) result.depth_requested = depth;
     await record('network-analysis', { seed_id, depth }, result);
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 17. Adverse Media Screener (Pass 7 — MECHANICAL)
+// LLM-only fallback by design; commercial-feed creds (Refinitiv/Dow Jones)
+// would be wired in here as `data_source: "commercial_feed"`.
+router.post('/adverse-media-screen', async (req, res) => {
+  try {
+    const { name, country, context, customer_id } = req.body || {};
+    if (!name && !customer_id) {
+      return res.status(400).json({ error: 'name or customer_id is required' });
+    }
+    let subject = { name, country, context };
+    if (customer_id) {
+      const c = await loadCustomer(customer_id);
+      subject = { ...c, ...subject };
+    }
+    let recentHits = [];
+    if (customer_id) {
+      const r = await pool.query(
+        'SELECT * FROM sanctions_hits WHERE customer_id = $1 ORDER BY created_at DESC LIMIT 10',
+        [customer_id]
+      );
+      recentHits = r.rows;
+    }
+    const result = await ai.adverseMediaScreen(subject, recentHits);
+    // Mark provider clearly when no commercial creds are wired.
+    if (!result.data_source) result.data_source = 'llm_only';
+    await record('adverse-media-screen', { name, country, customer_id }, result);
+    res.json(result);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 18. KYC Onboarding Pre-Screen (Pass 7 — MECHANICAL)
+// At-intake risk pre-screen (distinct from `kyc-refresh-summary` which is queue-summary).
+router.post('/kyc-onboarding-prescreen', async (req, res) => {
+  try {
+    const { customer_id, applicant_name, country, type, notes } = req.body || {};
+    let applicant = { customer_id, name: applicant_name, country, type, notes };
+    if (customer_id) {
+      const c = await loadCustomer(customer_id);
+      applicant = { ...c, ...applicant };
+    }
+    // Pull peer-density signal for the applicant's country / type.
+    let peerCount = 0;
+    let highRiskCount = 0;
+    if (country) {
+      const r = await pool.query(
+        "SELECT COUNT(*)::int AS total, COUNT(*) FILTER (WHERE risk_tier='high')::int AS high FROM customers WHERE country ILIKE $1",
+        [`%${country}%`]
+      );
+      peerCount = r.rows[0]?.total || 0;
+      highRiskCount = r.rows[0]?.high || 0;
+    }
+    const signals = { peer_count: peerCount, high_risk_peer_count: highRiskCount, notes };
+    const result = await ai.kycOnboardingPrescreen(applicant, signals);
+    await record('kyc-onboarding-prescreen', { customer_id, applicant_name, country, type }, result);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

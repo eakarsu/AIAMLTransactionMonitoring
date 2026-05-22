@@ -467,6 +467,53 @@ async function networkAnalysis(seedCustomer, transactions = [], owners = []) {
   return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', nodes: [], edges: [] });
 }
 
+// ──────────────────────────────────────────────────────────────
+// Pass 7 — backlog AI verbs
+// ──────────────────────────────────────────────────────────────
+
+// 17. Adverse Media Screen — LLM-only fallback (commercial feed creds optional)
+async function adverseMediaScreen(subject, recentHits = []) {
+  const sys = `${SYSTEM_PROMPT} Screen the subject for adverse media / negative news exposure (corruption, fraud, ML, sanctions evasion, terrorism, organized crime). Without a commercial feed (Refinitiv / Dow Jones / LexisNexis) you may only return LLM-inferred / general-knowledge hits with explicit low confidence. Return strict JSON:
+{
+  "subject": string,
+  "media_hits": [{
+    "headline": string,
+    "publication": string,
+    "date_estimate": string,
+    "category": "corruption"|"fraud"|"money_laundering"|"sanctions_evasion"|"terrorism"|"organized_crime"|"other",
+    "severity": "low"|"medium"|"high"|"critical",
+    "confidence": number,
+    "verification_required": boolean
+  }],
+  "overall_risk": "none"|"low"|"medium"|"high"|"critical",
+  "recommended_action": "clear"|"enhanced_review"|"block_onboarding"|"escalate",
+  "data_source": "llm_only"|"commercial_feed",
+  "summary": string
+}`;
+  const usr = `Subject:\n${JSON.stringify(subject, null, 2)}\nKnown internal hits:\n${JSON.stringify(recentHits, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', media_hits: [], data_source: 'llm_only' });
+}
+
+// 18. KYC Onboarding Pre-Screen — at-intake risk pre-screen (separate from refresh queue)
+async function kycOnboardingPrescreen(applicant, signals = {}) {
+  const sys = `${SYSTEM_PROMPT} Perform an at-intake KYC risk pre-screen for a new customer applicant. Return strict JSON:
+{
+  "applicant_summary": string,
+  "initial_risk_tier": "low"|"medium"|"high"|"critical",
+  "kyc_level_required": "simplified"|"standard"|"enhanced",
+  "screening_checklist": [{ "check": string, "status": "pass"|"fail"|"manual_review", "rationale": string }],
+  "documentary_requirements": [string],
+  "red_flags": [string],
+  "recommended_decision": "approve"|"approve_with_conditions"|"edd_required"|"reject",
+  "review_cadence_months": number,
+  "summary": string
+}`;
+  const usr = `Applicant:\n${JSON.stringify(applicant, null, 2)}\nSignals:\n${JSON.stringify(signals, null, 2)}`;
+  const r = await callOpenRouter(sys, usr);
+  return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', screening_checklist: [] });
+}
+
 module.exports = {
   callOpenRouter,
   safeJsonParse,
@@ -486,4 +533,6 @@ module.exports = {
   jurisdictionalRisk,
   falsePositiveClassifier,
   networkAnalysis,
+  adverseMediaScreen,
+  kycOnboardingPrescreen,
 };

@@ -42,6 +42,17 @@ import AIJurisdictionalRiskPage    from './pages/AIJurisdictionalRiskPage';
 import AIFalsePositiveClassifierPage from './pages/AIFalsePositiveClassifierPage';
 import AINetworkAnalysisPage       from './pages/AINetworkAnalysisPage';
 
+// Pass 7 — backlog
+import AIAdverseMediaScreenPage    from './pages/AIAdverseMediaScreenPage';
+import AIKycOnboardingPrescreenPage from './pages/AIKycOnboardingPrescreenPage';
+import PeerBenchmarksPage          from './pages/PeerBenchmarksPage';
+import IngestionPage               from './pages/IngestionPage';
+import CaseWorkflowPage            from './pages/CaseWorkflowPage';
+import EscalationPage              from './pages/EscalationPage';
+import FincenExportsPage           from './pages/FincenExportsPage';
+import AdvisoryActionsPage         from './pages/AdvisoryActionsPage';
+import StructuringRiskPage         from './pages/StructuringRiskPage';
+
 // Admin
 import WebhooksPage from './pages/WebhooksPage';
 
@@ -52,6 +63,9 @@ import LoginPage from './pages/LoginPage';
 import { getToken } from './services/api';
 
 import './App.css';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -69,6 +83,9 @@ function ShellRoutes() {
         <Topbar />
         <div style={{ padding: '24px 32px' }}>
           <Routes>
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/customers"           element={<CustomersPage />} />
@@ -106,6 +123,17 @@ function ShellRoutes() {
             <Route path="/ai/jurisdictional-risk"      element={<AIJurisdictionalRiskPage />} />
             <Route path="/ai/false-positive-classifier" element={<AIFalsePositiveClassifierPage />} />
             <Route path="/ai/network-analysis"         element={<AINetworkAnalysisPage />} />
+
+            {/* Pass 7 — backlog */}
+            <Route path="/ai/adverse-media-screen"     element={<AIAdverseMediaScreenPage />} />
+            <Route path="/ai/kyc-onboarding-prescreen" element={<AIKycOnboardingPrescreenPage />} />
+            <Route path="/peer-benchmarks"             element={<PeerBenchmarksPage />} />
+            <Route path="/ingestion"                   element={<IngestionPage />} />
+            <Route path="/case-workflow"               element={<CaseWorkflowPage />} />
+            <Route path="/escalation"                  element={<EscalationPage />} />
+            <Route path="/fincen-exports"              element={<FincenExportsPage />} />
+            <Route path="/advisory-actions"            element={<AdvisoryActionsPage />} />
+            <Route path="/structuring-risk"            element={<StructuringRiskPage />} />
 
             <Route path="/webhooks" element={<WebhooksPage />} />
 

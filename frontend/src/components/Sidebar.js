@@ -13,6 +13,7 @@ const TRANSACTIONS = [
 
 const ALERTS = [
   { to: '/alerts', label: 'Alerts' },
+  { to: '/structuring-risk', label: 'Structuring Risk' },
 ];
 
 const CASES = [
@@ -46,6 +47,7 @@ const AI_DETECTION = [
   { to: '/ai/transaction-anomaly',      label: 'AI · Transaction Anomaly' },
   { to: '/ai/sanction-name-match',      label: 'AI · Sanctions Name Match' },
   { to: '/ai/false-positive-classifier',label: 'AI · False Positive Classifier' },
+  { to: '/ai/adverse-media-screen',     label: 'AI · Adverse Media Screen' },
 ];
 
 const AI_INVESTIGATION = [
@@ -64,6 +66,16 @@ const AI_REPORTING = [
   { to: '/ai/peer-group-compare',      label: 'AI · Peer Group Compare' },
   { to: '/ai/jurisdictional-risk',     label: 'AI · Jurisdictional Risk' },
   { to: '/ai/kyc-refresh-summary',     label: 'AI · KYC Refresh Summary' },
+  { to: '/ai/kyc-onboarding-prescreen',label: 'AI · KYC Onboarding Pre-Screen' },
+];
+
+const OPERATIONS = [
+  { to: '/peer-benchmarks',  label: 'Peer Benchmarks' },
+  { to: '/case-workflow',    label: 'Case Workflow' },
+  { to: '/escalation',       label: 'Escalation Routing' },
+  { to: '/ingestion',        label: 'Ingestion' },
+  { to: '/fincen-exports',   label: 'FinCEN Exports' },
+  { to: '/advisory-actions', label: 'Advisory Actions' },
 ];
 
 export default function Sidebar() {
@@ -106,6 +118,9 @@ export default function Sidebar() {
 
       <div className="sidebar-group-label">AI Reporting</div>
       {AI_REPORTING.map((l) => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
+
+      <div className="sidebar-group-label">Operations</div>
+      {OPERATIONS.map((l) => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
 
       <div className="sidebar-group-label">Custom Views</div>
       <NavLink to="/custom-views">Compliance Views</NavLink>

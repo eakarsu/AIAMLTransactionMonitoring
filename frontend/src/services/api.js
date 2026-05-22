@@ -170,6 +170,66 @@ export const getUnreadNotifications = () => request('/notifications/unread');
 export const markNotificationRead   = (id) => request(`/notifications/${id}/read`, { method: 'POST' });
 export const markAllNotificationsRead = () => request('/notifications/mark-all-read', { method: 'POST' });
 
+// Pass 7 — backlog
+export const aiAdverseMediaScreen     = (body) => request('/ai/adverse-media-screen',     { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiKycOnboardingPrescreen = (body) => request('/ai/kyc-onboarding-prescreen', { method: 'POST', body: JSON.stringify(body || {}) });
+
+export const getPeerBenchmarks = (params = {}) => {
+  const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))).toString();
+  return request(`/peer-benchmarks${qs ? `?${qs}` : ''}`);
+};
+
+export const ingestionApi = {
+  ofacStatus:   ()       => request('/ingestion/ofac/status'),
+  ofacRefresh:  ()       => request('/ingestion/ofac/sdn/refresh', { method: 'POST' }),
+  adverseMediaStatus: () => request('/ingestion/adverse-media/status'),
+  txStreamList: (params = {}) => {
+    const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))).toString();
+    return request(`/ingestion/tx-stream${qs ? `?${qs}` : ''}`);
+  },
+  txStreamPost: (body) => request('/ingestion/tx-stream', { method: 'POST', body: JSON.stringify(body || {}) }),
+  txStreamProcess: (id) => request(`/ingestion/tx-stream/${id}/process`, { method: 'POST' }),
+};
+
+export const caseWorkflowApi = {
+  transitions: () => request('/case-workflow/transitions'),
+  history:     (caseType, caseRef) => request(`/case-workflow/${caseType}/${caseRef}/history`),
+  transition:  (caseType, caseRef, body) => request(`/case-workflow/${caseType}/${caseRef}/transition`, {
+    method: 'POST',
+    body: JSON.stringify(body || {}),
+  }),
+};
+
+export const escalationApi = {
+  queues:        () => request('/escalation/queues'),
+  createQueue:   (d) => request('/escalation/queues', { method: 'POST', body: JSON.stringify(d) }),
+  updateQueue:   (id, d) => request(`/escalation/queues/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
+  route:         (d) => request('/escalation/route', { method: 'POST', body: JSON.stringify(d) }),
+  assignments:   (params = {}) => {
+    const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))).toString();
+    return request(`/escalation/assignments${qs ? `?${qs}` : ''}`);
+  },
+};
+
+export const fincenExportsApi = {
+  mappings:     (filing_type) => {
+    const qs = filing_type ? `?filing_type=${encodeURIComponent(filing_type)}` : '';
+    return request(`/fincen-exports/mappings${qs}`);
+  },
+  createMapping: (d) => request('/fincen-exports/mappings', { method: 'POST', body: JSON.stringify(d) }),
+  export:       (filing_type, case_ref) => request(`/fincen-exports/${filing_type}/${encodeURIComponent(case_ref)}`),
+};
+
+export const advisoryApi = {
+  list:         (params = {}) => {
+    const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))).toString();
+    return request(`/advisory${qs ? `?${qs}` : ''}`);
+  },
+  autoFile:     (d) => request('/advisory/auto-file',   { method: 'POST', body: JSON.stringify(d) }),
+  autoFreeze:   (d) => request('/advisory/auto-freeze', { method: 'POST', body: JSON.stringify(d) }),
+  review:       (id, d) => request(`/advisory/${id}/review`, { method: 'POST', body: JSON.stringify(d) }),
+};
+
 // Webhooks
 export const webhooksApi = {
   list:    ()         => request('/webhooks'),
