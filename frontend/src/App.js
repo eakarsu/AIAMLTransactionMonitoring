@@ -55,6 +55,7 @@ import StructuringRiskPage         from './pages/StructuringRiskPage';
 
 // Admin
 import WebhooksPage from './pages/WebhooksPage';
+import ProductionControlsPage from './pages/ProductionControlsPage';
 
 // Compliance custom views
 import CustomViewsPage from './pages/CustomViewsPage';
@@ -136,6 +137,7 @@ function ShellRoutes() {
             <Route path="/structuring-risk"            element={<StructuringRiskPage />} />
 
             <Route path="/webhooks" element={<WebhooksPage />} />
+            <Route path="/production-controls" element={<ProductionControlsPage />} />
 
             <Route path="/custom-views" element={<CustomViewsPage />} />
 

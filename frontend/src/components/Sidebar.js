@@ -76,6 +76,7 @@ const OPERATIONS = [
   { to: '/ingestion',        label: 'Ingestion' },
   { to: '/fincen-exports',   label: 'FinCEN Exports' },
   { to: '/advisory-actions', label: 'Advisory Actions' },
+  { to: '/production-controls', label: 'Production Controls' },
 ];
 
 export default function Sidebar() {
