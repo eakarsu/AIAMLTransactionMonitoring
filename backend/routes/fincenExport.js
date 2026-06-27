@@ -65,6 +65,55 @@ router.post('/mappings', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/fincen-exports/case-refs?filing_type=SAR
+// Returns valid selectable refs for the selected export type.
+router.get('/case-refs', async (req, res) => {
+  try {
+    const filingType = String(req.query.filing_type || 'SAR').toUpperCase();
+    const queries = {
+      SAR: `
+        SELECT
+          s.case_id AS value,
+          CONCAT(s.case_id, ' · ', COALESCE(c.name, s.customer_id, 'No customer'), ' · ', COALESCE(s.status, 'unknown')) AS label
+        FROM sar_cases s
+        LEFT JOIN customers c ON c.customer_id = s.customer_id
+        ORDER BY s.opened_at DESC NULLS LAST, s.id DESC
+      `,
+      CTR: `
+        SELECT
+          ctr_id AS value,
+          CONCAT(ctr_id, ' · ', customer_id, ' · $', aggregate_amount, ' · ', COALESCE(status, 'unknown')) AS label
+        FROM ctrs
+        ORDER BY filed_at DESC NULLS LAST, id DESC
+      `,
+      '8300': `
+        SELECT
+          txn_id AS value,
+          CONCAT(txn_id, ' · ', account_id, ' · $', amount, ' · ', COALESCE(counterparty, 'No counterparty')) AS label
+        FROM transactions
+        ORDER BY ts DESC NULLS LAST, id DESC
+      `,
+      FBAR: `
+        SELECT
+          account_id AS value,
+          CONCAT(account_id, ' · ', customer_id, ' · ', currency, ' ', balance, ' · ', COALESCE(status, 'unknown')) AS label
+        FROM accounts
+        ORDER BY balance DESC NULLS LAST, id DESC
+      `,
+      OFAC: `
+        SELECT
+          hit_id AS value,
+          CONCAT(hit_id, ' · ', customer_id, ' · ', list, ' · score ', score, ' · ', COALESCE(status, 'unknown')) AS label
+        FROM sanctions_hits
+        ORDER BY score DESC NULLS LAST, id DESC
+      `,
+    };
+    if (!queries[filingType]) return res.status(400).json({ error: `unsupported filing_type ${filingType}` });
+    const r = await pool.query(queries[filingType]);
+    res.json(r.rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Internal helper: resolve sar / ctr / generic row + customer.
 async function loadCaseAndSubject(filing_type, case_ref) {
   if (filing_type === 'SAR') {

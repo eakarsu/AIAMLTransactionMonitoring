@@ -3,13 +3,21 @@ const path = require('path');
 const { Pool } = require('pg');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'aml_monitoring',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-});
+function buildPoolConfig() {
+  if (process.env.DATABASE_URL) {
+    return { connectionString: process.env.DATABASE_URL };
+  }
+
+  return {
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT || 5432,
+    database: process.env.DB_NAME || 'aml_monitoring',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+  };
+}
+
+const pool = new Pool(buildPoolConfig());
 
 async function run() {
   const client = await pool.connect();
@@ -41,6 +49,12 @@ async function run() {
       DROP TABLE IF EXISTS attachments         CASCADE;
       DROP TABLE IF EXISTS webhooks            CASCADE;
       DROP TABLE IF EXISTS webhook_deliveries  CASCADE;
+      DROP TABLE IF EXISTS case_state_transitions CASCADE;
+      DROP TABLE IF EXISTS escalation_assignments CASCADE;
+      DROP TABLE IF EXISTS escalation_queues      CASCADE;
+      DROP TABLE IF EXISTS tx_events              CASCADE;
+      DROP TABLE IF EXISTS fincen_field_mappings  CASCADE;
+      DROP TABLE IF EXISTS advisory_actions       CASCADE;
     `);
 
     console.log('[seed] applying migrations...');
@@ -48,6 +62,8 @@ async function run() {
     await client.query(schema1);
     const schema2 = fs.readFileSync(path.join(__dirname, '..', 'migrations', '002_schema.sql'), 'utf8');
     await client.query(schema2);
+    const schema3 = fs.readFileSync(path.join(__dirname, '..', 'migrations', '003_pass7.sql'), 'utf8');
+    await client.query(schema3);
 
     // ─── customers (15) ────────────────────────────────────────────
     console.log('[seed] inserting customers...');

@@ -10,7 +10,7 @@ export default function TransactionsPage() {
       api={transactionsApi}
       fields={[
         { key: 'txn_id',       label: 'Transaction ID' },
-        { key: 'account_id',   label: 'Account ID' },
+        { key: 'account_id',   label: 'Account ID', ref: 'accounts' },
         { key: 'amount',       label: 'Amount',     type: 'number' },
         { key: 'currency',     label: 'Currency' },
         { key: 'counterparty', label: 'Counterparty' },

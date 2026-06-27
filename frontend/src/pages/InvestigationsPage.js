@@ -11,7 +11,7 @@ export default function InvestigationsPage() {
       statusKey="status"
       fields={[
         { key: 'inv_id',    label: 'Investigation ID' },
-        { key: 'case_id',   label: 'Case ID' },
+        { key: 'case_id',   label: 'Case ID', ref: 'sarCases' },
         { key: 'lead',      label: 'Lead' },
         { key: 'status',    label: 'Status',    type: 'select', options: ['open','pending','closed'] },
         { key: 'opened_at', label: 'Opened',    type: 'datetime-local' },

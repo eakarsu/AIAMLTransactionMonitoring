@@ -10,7 +10,7 @@ export default function BeneficialOwnersPage() {
       api={beneficialOwnersApi}
       fields={[
         { key: 'owner_id',      label: 'Owner ID' },
-        { key: 'entity_id',     label: 'Entity ID (customer_id)' },
+        { key: 'entity_id',     label: 'Entity ID (customer_id)', ref: 'customers' },
         { key: 'name',          label: 'Name' },
         { key: 'country',       label: 'Country' },
         { key: 'pct_ownership', label: '% Ownership', type: 'number' },

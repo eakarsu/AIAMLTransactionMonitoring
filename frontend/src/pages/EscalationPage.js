@@ -1,9 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { escalationApi } from '../services/api';
+import ReferenceSelect, { sourceForCaseType } from '../components/ReferenceSelect';
+import TableDetailModal from '../components/TableDetailModal';
+
+const ROUTE_SAMPLES = [
+  { label: 'Critical alert', values: { case_type: 'alert', case_ref: 'ALT-2026-0003', severity: 'critical', jurisdiction: 'RU', persist: true } },
+  { label: 'High SAR', values: { case_type: 'sar_case', case_ref: 'SAR-2026-0001', severity: 'high', jurisdiction: 'US', persist: true } },
+  { label: 'EDD review', values: { case_type: 'edd_case', case_ref: 'EDD-9001', severity: 'medium', jurisdiction: '', persist: true } },
+];
 
 export default function EscalationPage() {
   const [queues, setQueues] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [selectedQueue, setSelectedQueue] = useState(null);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [routeForm, setRouteForm] = useState({ case_type: 'alert', case_ref: '', severity: 'high', jurisdiction: '', persist: true });
   const [routed, setRouted] = useState(null);
   const [error, setError] = useState(null);
@@ -43,7 +53,7 @@ export default function EscalationPage() {
           <thead><tr><th>Queue</th><th>Name</th><th>Severity Floor</th><th>Jurisdiction</th><th>On-call</th><th>Notes</th></tr></thead>
           <tbody>
             {queues.map((q) => (
-              <tr key={q.queue_id}>
+              <tr key={q.queue_id} onClick={() => setSelectedQueue(q)} style={{ cursor: 'pointer' }}>
                 <td>{q.queue_id}</td><td>{q.name}</td><td>{q.severity_floor}</td>
                 <td>{q.jurisdiction || 'any'}</td><td>{q.on_call_user || '—'}</td><td>{q.notes || '—'}</td>
               </tr>
@@ -54,14 +64,26 @@ export default function EscalationPage() {
 
       <div className="card" style={{ marginBottom: 16 }}>
         <h3 style={{ marginTop: 0 }}>Route a Case</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+          {ROUTE_SAMPLES.map((sample) => (
+            <button key={sample.label} type="button" className="btn secondary" onClick={() => setRouteForm(sample.values)}>
+              {sample.label}
+            </button>
+          ))}
+        </div>
         <div className="form-grid">
           <div className="form-group"><label>Case Type</label>
-            <select value={routeForm.case_type} onChange={(e) => setRouteForm((s) => ({ ...s, case_type: e.target.value }))}>
+            <select value={routeForm.case_type} onChange={(e) => setRouteForm((s) => ({ ...s, case_type: e.target.value, case_ref: '' }))}>
               {['alert','sar_case','investigation','edd_case'].map((t) => <option key={t}>{t}</option>)}
             </select>
           </div>
           <div className="form-group"><label>Case Ref</label>
-            <input value={routeForm.case_ref} onChange={(e) => setRouteForm((s) => ({ ...s, case_ref: e.target.value }))} placeholder="ALERT-2026-0001" />
+            <ReferenceSelect
+              source={sourceForCaseType(routeForm.case_type)}
+              value={routeForm.case_ref}
+              onChange={(value) => setRouteForm((s) => ({ ...s, case_ref: value }))}
+              emptyLabel="Select case ref"
+            />
           </div>
           <div className="form-group"><label>Severity</label>
             <select value={routeForm.severity} onChange={(e) => setRouteForm((s) => ({ ...s, severity: e.target.value }))}>
@@ -69,7 +91,13 @@ export default function EscalationPage() {
             </select>
           </div>
           <div className="form-group"><label>Jurisdiction (optional)</label>
-            <input value={routeForm.jurisdiction} onChange={(e) => setRouteForm((s) => ({ ...s, jurisdiction: e.target.value }))} placeholder="US" />
+            <ReferenceSelect
+              source="jurisdictions"
+              value={routeForm.jurisdiction}
+              onChange={(value) => setRouteForm((s) => ({ ...s, jurisdiction: value }))}
+              allowEmpty
+              emptyLabel="Any jurisdiction"
+            />
           </div>
           <div className="form-group">
             <label><input type="checkbox" checked={routeForm.persist} onChange={(e) => setRouteForm((s) => ({ ...s, persist: e.target.checked }))} /> Persist assignment</label>
@@ -93,7 +121,7 @@ export default function EscalationPage() {
           <thead><tr><th>When</th><th>Queue</th><th>Case Type</th><th>Case Ref</th><th>Severity</th><th>Assigned To</th><th>Status</th></tr></thead>
           <tbody>
             {assignments.map((a) => (
-              <tr key={a.id}>
+              <tr key={a.id} onClick={() => setSelectedAssignment(a)} style={{ cursor: 'pointer' }}>
                 <td>{new Date(a.created_at).toLocaleString()}</td>
                 <td>{a.queue_id}</td><td>{a.case_type}</td><td>{a.case_ref}</td>
                 <td>{a.severity}</td><td>{a.assigned_to || '—'}</td><td>{a.status}</td>
@@ -103,6 +131,39 @@ export default function EscalationPage() {
           </tbody>
         </table>
       </div>
+
+      <TableDetailModal
+        title="Escalation Queue Details"
+        row={selectedQueue}
+        onClose={() => setSelectedQueue(null)}
+        fields={[
+          { key: 'queue_id', label: 'Queue ID' },
+          { key: 'name', label: 'Name' },
+          { key: 'severity_floor', label: 'Severity Floor' },
+          { key: 'jurisdiction', label: 'Jurisdiction' },
+          { key: 'on_call_user', label: 'On-call User' },
+          { key: 'notes', label: 'Notes' },
+          { key: 'created_at', label: 'Created At', render: (r) => r.created_at ? new Date(r.created_at).toLocaleString() : '—' },
+          { key: 'updated_at', label: 'Updated At', render: (r) => r.updated_at ? new Date(r.updated_at).toLocaleString() : '—' },
+        ]}
+      />
+
+      <TableDetailModal
+        title="Escalation Assignment Details"
+        row={selectedAssignment}
+        onClose={() => setSelectedAssignment(null)}
+        fields={[
+          { key: 'id', label: 'ID' },
+          { key: 'created_at', label: 'When', render: (r) => r.created_at ? new Date(r.created_at).toLocaleString() : '—' },
+          { key: 'queue_id', label: 'Queue ID' },
+          { key: 'case_type', label: 'Case Type' },
+          { key: 'case_ref', label: 'Case Ref' },
+          { key: 'severity', label: 'Severity' },
+          { key: 'assigned_to', label: 'Assigned To' },
+          { key: 'status', label: 'Status' },
+          { key: 'reason', label: 'Reason' },
+        ]}
+      />
     </div>
   );
 }

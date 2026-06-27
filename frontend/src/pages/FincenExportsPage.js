@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { fincenExportsApi } from '../services/api';
+import TableDetailModal from '../components/TableDetailModal';
 
 const FILING_TYPES = ['SAR', 'CTR', '8300', 'FBAR', 'OFAC'];
 
 export default function FincenExportsPage() {
   const [filingType, setFilingType] = useState('SAR');
   const [caseRef, setCaseRef] = useState('');
+  const [caseRefs, setCaseRefs] = useState([]);
+  const [refsLoading, setRefsLoading] = useState(false);
   const [mappings, setMappings] = useState([]);
+  const [selectedMapping, setSelectedMapping] = useState(null);
   const [exportResult, setExportResult] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -15,7 +19,22 @@ export default function FincenExportsPage() {
     try { setMappings(await fincenExportsApi.mappings(ft)); setError(null); }
     catch (e) { setError(e.message); }
   };
-  useEffect(() => { loadMappings(filingType); }, [filingType]);
+  const loadCaseRefs = async (ft) => {
+    setRefsLoading(true);
+    try {
+      const refs = await fincenExportsApi.caseRefs(ft);
+      setCaseRefs(refs);
+      setCaseRef(refs[0]?.value || '');
+      setError(null);
+    } catch (e) {
+      setCaseRefs([]);
+      setCaseRef('');
+      setError(e.message);
+    } finally {
+      setRefsLoading(false);
+    }
+  };
+  useEffect(() => { loadMappings(filingType); loadCaseRefs(filingType); }, [filingType]);
 
   const runExport = async () => {
     setBusy(true); setError(null); setExportResult(null);
@@ -45,7 +64,20 @@ export default function FincenExportsPage() {
           </div>
           <div className="form-group">
             <label>Case Ref</label>
-            <input value={caseRef} onChange={(e) => setCaseRef(e.target.value)} placeholder={filingType === 'SAR' ? 'SAR-2026-0001' : filingType === 'CTR' ? 'CTR-2026-W20-001' : filingType === '8300' ? 'TXN-90001' : filingType === 'FBAR' ? 'ACC-10001' : 'HIT-2026-0001'} />
+            {caseRefs.length > 0 ? (
+              <select value={caseRef} onChange={(e) => setCaseRef(e.target.value)} disabled={refsLoading}>
+                {caseRefs.map((ref) => (
+                  <option key={ref.value} value={ref.value}>{ref.label}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                value={caseRef}
+                onChange={(e) => setCaseRef(e.target.value)}
+                disabled={refsLoading}
+                placeholder={refsLoading ? 'Loading case refs...' : 'No case refs available'}
+              />
+            )}
           </div>
         </div>
         <div style={{ marginTop: 12 }}>
@@ -59,7 +91,7 @@ export default function FincenExportsPage() {
           <thead><tr><th>Internal Path</th><th>XSD Element</th><th>Required</th><th>Notes</th></tr></thead>
           <tbody>
             {mappings.map((m) => (
-              <tr key={m.id}>
+              <tr key={m.id} onClick={() => setSelectedMapping(m)} style={{ cursor: 'pointer' }}>
                 <td><code>{m.internal_path}</code></td>
                 <td><code style={{ fontSize: 12 }}>{m.xsd_element}</code></td>
                 <td>{m.required ? 'yes' : 'no'}</td>
@@ -70,6 +102,21 @@ export default function FincenExportsPage() {
           </tbody>
         </table>
       </div>
+
+      <TableDetailModal
+        title="FinCEN Mapping Details"
+        row={selectedMapping}
+        onClose={() => setSelectedMapping(null)}
+        fields={[
+          { key: 'id', label: 'ID' },
+          { key: 'filing_type', label: 'Filing Type' },
+          { key: 'internal_path', label: 'Internal Path' },
+          { key: 'xsd_element', label: 'XSD Element' },
+          { key: 'required', label: 'Required' },
+          { key: 'notes', label: 'Notes' },
+          { key: 'created_at', label: 'Created At', render: (r) => r.created_at ? new Date(r.created_at).toLocaleString() : '—' },
+        ]}
+      />
 
       {error && <div className="ai-error">{error}</div>}
 

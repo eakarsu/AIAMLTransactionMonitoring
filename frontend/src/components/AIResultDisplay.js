@@ -47,6 +47,96 @@ const isPlainObject = (v) => v && typeof v === 'object' && !Array.isArray(v);
 const titleCase = (s) =>
   String(s).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
+function stripJsonFences(text) {
+  const trimmed = String(text || '').trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  return fenced ? fenced[1].trim() : trimmed;
+}
+
+function removeNumericThousandsCommas(text) {
+  return String(text).replace(/(-?\d{1,3}(?:,\d{3})+)(\.\d+)?/g, (match, whole, decimal = '') => {
+    return whole.replace(/,/g, '') + decimal;
+  });
+}
+
+function tryParseJsonText(text) {
+  if (typeof text !== 'string') return null;
+  const stripped = stripJsonFences(text);
+
+  const candidates = [];
+  for (let i = 0; i < stripped.length; i += 1) {
+    if (stripped[i] !== '{' && stripped[i] !== '[') continue;
+    const open = stripped[i];
+    const close = open === '{' ? '}' : ']';
+    const stack = [open];
+    let inString = false;
+    let escaped = false;
+
+    for (let j = i + 1; j < stripped.length; j += 1) {
+      const ch = stripped[j];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (ch === '"') {
+        inString = !inString;
+        continue;
+      }
+      if (inString) continue;
+      if (ch === open) stack.push(ch);
+      if (ch === close) stack.pop();
+      if (stack.length === 0) {
+        candidates.push(stripped.slice(i, j + 1));
+        break;
+      }
+    }
+  }
+
+  candidates.sort((a, b) => b.length - a.length);
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (_) {
+      try {
+        return JSON.parse(removeNumericThousandsCommas(candidate));
+      } catch (__) {}
+    }
+  }
+  return null;
+}
+
+function looksLikeJsonText(text) {
+  if (typeof text !== 'string') return false;
+  const s = text.trim();
+  return /```(?:json)?/i.test(s) || /^[\s\S]*[{[]\s*"[^"]+"\s*:/.test(s);
+}
+
+function normalizeAiResult(value) {
+  if (typeof value === 'string') {
+    const parsed = tryParseJsonText(value);
+    return parsed != null ? normalizeAiResult(parsed) : value;
+  }
+  if (Array.isArray(value)) return value.map(normalizeAiResult);
+  if (!isPlainObject(value)) return value;
+
+  const summaryParsed = tryParseJsonText(value.summary);
+  if (summaryParsed && (isPlainObject(summaryParsed) || Array.isArray(summaryParsed))) {
+    const { summary, ...rest } = value;
+    return normalizeAiResult({
+      ...(isPlainObject(summaryParsed) ? summaryParsed : { results: summaryParsed }),
+      ...rest,
+    });
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([k, v]) => [k, normalizeAiResult(v)])
+  );
+}
+
 function severityClass(value) {
   if (value == null) return '';
   const v = String(value).toLowerCase().trim();
@@ -305,7 +395,8 @@ function nowStamp() {
 }
 
 export default function AIResultDisplay({ result, loading, error, feature, title }) {
-  const json = useMemo(() => (result ? JSON.stringify(result, null, 2) : ''), [result]);
+  const displayResult = useMemo(() => (result ? normalizeAiResult(result) : null), [result]);
+  const json = useMemo(() => (displayResult ? JSON.stringify(displayResult, null, 2) : ''), [displayResult]);
   const runId = useMemo(() => (result ? genRunId() : ''), [result]);
   const stamp = useMemo(() => (result ? nowStamp() : ''), [result]);
   const briefLabel = (title || (feature ? `AI · ${titleCase(feature)}` : 'AI Analysis')).replace(/^AI\s*[·•]\s*/, '');
@@ -347,10 +438,17 @@ export default function AIResultDisplay({ result, loading, error, feature, title
   }
   if (!result) return null;
 
-  const { summary, error: aiError, raw, ...rest } = result;
-  const hero = pickHero(rest);
-  const kpis = pickKpis(rest);
-  const sectionEntries = Object.entries(rest).filter(([k]) => !HIDE_FROM_SECTIONS.has(k));
+  const normalizedObject = isPlainObject(displayResult) ? displayResult : { summary: displayResult };
+  const { summary, error: aiError, raw, ...rest } = normalizedObject;
+  const safeSummary = looksLikeJsonText(summary) ? '' : summary;
+  const fallbackParsedSummary = looksLikeJsonText(summary) ? tryParseJsonText(summary) : null;
+  const hiddenJsonSummary = looksLikeJsonText(summary) && !fallbackParsedSummary;
+  const displayRest = fallbackParsedSummary
+    ? { ...(isPlainObject(fallbackParsedSummary) ? fallbackParsedSummary : { results: fallbackParsedSummary }), ...rest }
+    : rest;
+  const hero = pickHero(displayRest);
+  const kpis = pickKpis(displayRest);
+  const sectionEntries = Object.entries(displayRest).filter(([k]) => !HIDE_FROM_SECTIONS.has(k));
 
   return (
     <div className="ai-panel">
@@ -383,11 +481,11 @@ export default function AIResultDisplay({ result, loading, error, feature, title
       <div className="ai-panel-body">
         {aiError && <div className="ai-error" style={{ marginBottom: 14 }}>{aiError}</div>}
 
-        {(hero || summary) && (
+        {(hero || safeSummary) && (
           <div className="ai-hero">
             <div className="ai-hero-eyebrow">Executive Summary</div>
             {hero && <div className="ai-hero-headline">{hero.value}</div>}
-            {summary && <div className="ai-hero-summary">{summary}</div>}
+            {safeSummary && <div className="ai-hero-summary">{safeSummary}</div>}
           </div>
         )}
 
@@ -411,6 +509,12 @@ export default function AIResultDisplay({ result, loading, error, feature, title
         {sectionEntries.length > 0 && (
           <div className="ai-sections">
             {sectionEntries.map(([k, v]) => <Section key={k} k={k} v={v} />)}
+          </div>
+        )}
+
+        {hiddenJsonSummary && (
+          <div className="ai-sections">
+            <Section k="structured_result_unavailable" v="The model returned malformed JSON text. Use Copy JSON for the raw response, or rerun the analysis." />
           </div>
         )}
 

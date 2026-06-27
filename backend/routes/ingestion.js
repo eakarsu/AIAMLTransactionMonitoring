@@ -51,12 +51,12 @@ router.post('/ofac/sdn/refresh', async (req, res) => {
     for (const row of sample) {
       const r = await pool.query(
         `
-        INSERT INTO watchlists (list_id, name, jurisdiction, last_review, notes, status)
-        VALUES ($1, $2, $3, NOW(), 'ingested via /api/ingestion/ofac/sdn/refresh (sample-mode)', 'active')
+        INSERT INTO watchlists (list_id, name, jurisdiction, last_updated, notes, status)
+        VALUES ($1, $2, $3, CURRENT_DATE, 'ingested via /api/ingestion/ofac/sdn/refresh (sample-mode)', 'active')
         ON CONFLICT (list_id) DO UPDATE
           SET name = EXCLUDED.name,
               jurisdiction = EXCLUDED.jurisdiction,
-              last_review = NOW(),
+              last_updated = CURRENT_DATE,
               updated_at = NOW()
         RETURNING id
         `,
@@ -80,7 +80,17 @@ router.get('/ofac/status', async (req, res) => {
     const enabled = String(process.env.OFAC_INGESTION_ENABLED || '').toLowerCase() === 'true';
     const ack     = String(process.env.OFAC_INGESTION_LICENSE_ACK || '').toLowerCase() === 'true';
     const r = await pool.query(
-      "SELECT list_id, name, jurisdiction, last_review, status FROM watchlists WHERE list_id IN ('OFAC-SDN','EU-CONSOLIDATED','UN-1267','UK-HMT') ORDER BY list_id"
+      `
+      SELECT
+        list_id,
+        name,
+        jurisdiction,
+        last_updated AS last_review,
+        status
+      FROM watchlists
+      WHERE list_id IN ('OFAC-SDN','EU-CONSOLIDATED','UN-1267','UK-HMT')
+      ORDER BY list_id
+      `
     );
     res.json({
       enabled,
@@ -92,7 +102,7 @@ router.get('/ofac/status', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
-// Adverse-media feed status (NEEDS-CREDS, kept as 503 stub)
+// Adverse-media feed status.
 // ─────────────────────────────────────────────
 router.get('/adverse-media/status', (req, res) => {
   const hasProvider =
@@ -100,14 +110,17 @@ router.get('/adverse-media/status', (req, res) => {
     process.env.DOWJONES_API_KEY ||
     process.env.LEXISNEXIS_API_KEY;
   if (!hasProvider) {
-    return res.status(503).json({
-      error: 'No commercial adverse-media provider configured',
+    return res.json({
+      enabled: false,
+      provider: null,
+      mode: 'llm_only_fallback',
+      message: 'No commercial adverse-media provider configured.',
       required_env_any: ['REFINITIV_API_KEY', 'DOWJONES_API_KEY', 'LEXISNEXIS_API_KEY'],
       fallback: 'LLM-only screening via POST /api/ai/adverse-media-screen (data_source=llm_only)',
       requires_human_review: true,
     });
   }
-  res.json({ enabled: true, provider: 'configured' });
+  res.json({ enabled: true, provider: 'configured', mode: 'commercial_feed' });
 });
 
 // ─────────────────────────────────────────────

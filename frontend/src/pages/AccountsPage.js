@@ -11,7 +11,7 @@ export default function AccountsPage() {
       statusKey="status"
       fields={[
         { key: 'account_id',  label: 'Account ID' },
-        { key: 'customer_id', label: 'Customer ID' },
+        { key: 'customer_id', label: 'Customer ID', ref: 'customers' },
         { key: 'type',        label: 'Type',     type: 'select', options: ['checking','savings','corporate','trade','private','remittance','crypto-fiat'] },
         { key: 'balance',     label: 'Balance',  type: 'number' },
         { key: 'currency',    label: 'Currency' },

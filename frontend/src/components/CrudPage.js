@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { canWrite } from '../services/api';
+import ReferenceSelect from './ReferenceSelect';
 
 /**
  * Generic CRUD page.
@@ -27,6 +28,7 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
   const [err, setErr] = useState(null);
   const [editing, setEditing] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
   const [draft, setDraft] = useState({});
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -43,6 +45,28 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
   const [importBusy, setImportBusy] = useState(false);
   const [importResult, setImportResult] = useState(null);
   const importFileInputRef = useRef(null);
+
+  const isDateField = (field) => field.type === 'date' || field.type === 'datetime-local';
+
+  const normalizeDateInputValue = (value, type) => {
+    if (value == null || value === '') return '';
+    const raw = String(value);
+    if (type === 'date') return raw.slice(0, 10);
+    if (type === 'datetime-local') {
+      const normalized = raw.replace(' ', 'T');
+      const match = normalized.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+      return match ? match[1] : normalized.slice(0, 16);
+    }
+    return raw;
+  };
+
+  const normalizeDraft = (row = {}) =>
+    Object.fromEntries(fields.map((f) => {
+      const value = row[f.key];
+      if (isDateField(f)) return [f.key, normalizeDateInputValue(value, f.type)];
+      if (f.type === 'number') return [f.key, value == null || value === '' ? 0 : Number(value)];
+      return [f.key, value ?? ''];
+    }));
 
   const emptyDraft = () =>
     Object.fromEntries(fields.map((f) => [f.key, f.type === 'number' ? 0 : '']));
@@ -63,8 +87,8 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
   useEffect(() => { load(); }, []); // eslint-disable-line
   useEffect(() => { setPage(1); }, [search]);
 
-  const openCreate = () => { setDraft(emptyDraft()); setCreating(true); setEditing(null); };
-  const openEdit = (row) => { setDraft({ ...row }); setEditing(row); setCreating(false); };
+  const openCreate = () => { setDraft(emptyDraft()); setCreating(true); setEditing(null); setSelectedRow(null); };
+  const openEdit = (row) => { setDraft(normalizeDraft(row)); setEditing(row); setCreating(false); setSelectedRow(null); };
   const closeModal = () => { setCreating(false); setEditing(null); setDraft({}); };
 
   const handleSave = async () => {
@@ -78,10 +102,22 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
 
   const handleDelete = async (row) => {
     if (!window.confirm(`Delete ${row[fields[0].key] || row.id}?`)) return;
-    try { await api.remove(row.id); load(); } catch (e) { alert(e.message); }
+    try { await api.remove(row.id); setSelectedRow(null); load(); } catch (e) { alert(e.message); }
   };
 
   const setField = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
+
+  const setDateShortcut = (field, shortcut) => {
+    if (shortcut === 'clear') {
+      setField(field.key, '');
+      return;
+    }
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    if (field.type === 'date') setField(field.key, date);
+    else setField(field.key, `${date}T${pad(now.getHours())}:${pad(now.getMinutes())}`);
+  };
 
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -176,7 +212,8 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
       return <span className={`badge ${cls}`}>{String(v)}</span>;
     }
     if (typeof v === 'string' && v.length > 80) return v.slice(0, 80) + '…';
-    if (f.type === 'datetime-local' && typeof v === 'string') return v.replace('T', ' ').slice(0, 16);
+    if (f.type === 'date' && typeof v === 'string') return v.slice(0, 10);
+    if (f.type === 'datetime-local' && typeof v === 'string') return normalizeDateInputValue(v, 'datetime-local').replace('T', ' ');
     return String(v);
   };
 
@@ -237,26 +274,12 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
               <thead>
                 <tr>
                   {fields.map((f) => <th key={f.key}>{f.label}</th>)}
-                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {pagedRows.map((row) => (
-                  <tr key={row.id}>
+                  <tr key={row.id} onClick={() => setSelectedRow(row)} style={{ cursor: 'pointer' }}>
                     {fields.map((f) => <td key={f.key}>{renderCell(row, f)}</td>)}
-                    <td style={{ textAlign: 'right' }}>
-                      {allowAttachments && (
-                        <button className="btn secondary" onClick={() => openAttachments(row)} style={{ marginRight: 6 }}>
-                          Files
-                        </button>
-                      )}
-                      {writer && (
-                        <>
-                          <button className="btn secondary" onClick={() => openEdit(row)} style={{ marginRight: 6 }}>Edit</button>
-                          <button className="btn danger" onClick={() => handleDelete(row)}>Delete</button>
-                        </>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -273,6 +296,41 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
         </>
       )}
 
+      {selectedRow && (
+        <div className="modal-overlay" onClick={() => setSelectedRow(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 820 }}>
+            <div className="modal-header">
+              <h3>{title} Details</h3>
+              <button className="modal-close" onClick={() => setSelectedRow(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid">
+                {fields.map((f) => (
+                  <div key={f.key} className="detail-field">
+                    <div className="detail-label">{f.label}</div>
+                    <div className="detail-value">{renderCell(selectedRow, f)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn secondary" onClick={() => setSelectedRow(null)}>Cancel</button>
+              {allowAttachments && (
+                <button className="btn secondary" onClick={() => { const row = selectedRow; setSelectedRow(null); openAttachments(row); }}>
+                  Files
+                </button>
+              )}
+              {writer && (
+                <>
+                  <button className="btn secondary" onClick={() => openEdit(selectedRow)}>Edit</button>
+                  <button className="btn danger" onClick={() => handleDelete(selectedRow)}>Delete</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {(creating || editing) && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -285,19 +343,41 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
                 {fields.map((f) => (
                   <div key={f.key} className={`form-group ${f.type === 'textarea' ? 'full-width' : ''}`}>
                     <label>{f.label}</label>
-                    {f.type === 'select' ? (
+                    {f.ref ? (
+                      <ReferenceSelect
+                        source={f.ref}
+                        value={draft[f.key] ?? ''}
+                        onChange={(v) => setField(f.key, v)}
+                        allowEmpty
+                        emptyLabel={`Select ${f.label.toLowerCase()}`}
+                      />
+                    ) : f.type === 'select' ? (
                       <select value={draft[f.key] ?? ''} onChange={(e) => setField(f.key, e.target.value)}>
                         <option value="">—</option>
                         {(f.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
                       </select>
                     ) : f.type === 'textarea' ? (
                       <textarea value={draft[f.key] ?? ''} onChange={(e) => setField(f.key, e.target.value)} />
+                    ) : isDateField(f) ? (
+                      <div className="date-input-stack">
+                        <input
+                          type={f.type}
+                          value={normalizeDateInputValue(draft[f.key], f.type)}
+                          onChange={(e) => setField(f.key, e.target.value)}
+                        />
+                        <div className="date-quick-actions">
+                          <button type="button" className="btn secondary tiny" onClick={() => setDateShortcut(f, 'today')}>
+                            {f.type === 'date' ? 'Today' : 'Now'}
+                          </button>
+                          <button type="button" className="btn secondary tiny" onClick={() => setDateShortcut(f, 'clear')}>
+                            Clear
+                          </button>
+                        </div>
+                      </div>
                     ) : (
                       <input
                         type={f.type || 'text'}
-                        value={f.type === 'datetime-local' && draft[f.key]
-                          ? String(draft[f.key]).slice(0, 16)
-                          : (draft[f.key] ?? '')}
+                        value={draft[f.key] ?? ''}
                         onChange={(e) =>
                           setField(f.key, f.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)
                         }

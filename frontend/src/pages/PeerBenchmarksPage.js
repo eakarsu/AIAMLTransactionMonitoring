@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getPeerBenchmarks } from '../services/api';
+import ReferenceSelect from '../components/ReferenceSelect';
 
 function StatRow({ label, value, money }) {
   let display = value;
@@ -52,19 +53,43 @@ export default function PeerBenchmarksPage() {
         <div className="form-grid">
           <div className="form-group">
             <label>Customer ID (auto-fills type+country)</label>
-            <input value={filters.customer_id} onChange={(e) => setField('customer_id', e.target.value)} placeholder="C-4421" />
+            <ReferenceSelect
+              source="customers"
+              value={filters.customer_id}
+              onChange={(value) => setField('customer_id', value)}
+              allowEmpty
+              emptyLabel="Optional focus customer"
+            />
           </div>
           <div className="form-group">
             <label>Type</label>
-            <input value={filters.type} onChange={(e) => setField('type', e.target.value)} placeholder="corporate" />
+            <ReferenceSelect
+              source="customerTypes"
+              value={filters.type}
+              onChange={(value) => setField('type', value)}
+              allowEmpty
+              emptyLabel="Any type"
+            />
           </div>
           <div className="form-group">
             <label>Country</label>
-            <input value={filters.country} onChange={(e) => setField('country', e.target.value)} placeholder="US" />
+            <ReferenceSelect
+              source="customerCountries"
+              value={filters.country}
+              onChange={(value) => setField('country', value)}
+              allowEmpty
+              emptyLabel="Any country"
+            />
           </div>
           <div className="form-group">
             <label>Risk Tier</label>
-            <input value={filters.risk_tier} onChange={(e) => setField('risk_tier', e.target.value)} placeholder="high" />
+            <ReferenceSelect
+              source="riskTiers"
+              value={filters.risk_tier}
+              onChange={(value) => setField('risk_tier', value)}
+              allowEmpty
+              emptyLabel="Any risk tier"
+            />
           </div>
         </div>
       </div>

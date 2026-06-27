@@ -85,11 +85,11 @@ const SAMPLES = {
   ],
 
   'kyc-refresh-summary': [
-    { label: 'Default — full KYC queue', values: {} },
-    { label: 'Default — full KYC queue', values: {} },
-    { label: 'Default — full KYC queue', values: {} },
-    { label: 'Default — full KYC queue', values: {} },
-    { label: 'Default — full KYC queue', values: {} },
+    { label: 'Full queue — all KYC profiles', values: {} },
+    { label: 'Expired documents focus', values: {} },
+    { label: 'Enhanced due diligence focus', values: {} },
+    { label: 'Refresh due this quarter', values: {} },
+    { label: 'High-risk customer refresh queue', values: {} },
   ],
 
   'sanction-name-match': [
@@ -466,23 +466,23 @@ const SAMPLES = {
   'adverse-media-screen': [
     {
       label: 'Vladimir Petrov — Russian Deputy Energy Minister',
-      values: { name: 'Vladimir Petrov', country: 'RU', context: 'PEP onboarding, $14.2M private banking, alleged kickback news in EU press.' },
+      values: { name: 'Vladimir Petrov', country: 'RU', customer_id: 'C-4426', context: 'PEP onboarding, $14.2M private banking, alleged kickback news in EU press.' },
     },
     {
       label: 'Sahel Mining Corp — ML high-risk',
-      values: { name: 'Sahel Mining Corp', country: 'ML', context: 'Mali mining export licensing controversy, PEP-linked BO.' },
+      values: { name: 'Sahel Mining Corp', country: 'ML', customer_id: 'C-4429', context: 'Mali mining export licensing controversy, PEP-linked BO.' },
     },
     {
       label: 'Crypto Bridge SARL — mixer exposure',
-      values: { name: 'Crypto Bridge SARL', country: 'CH', context: 'Outbound to Tornado Cash, prior FINMA enforcement rumors.' },
+      values: { name: 'Crypto Bridge SARL', country: 'CH', customer_id: 'C-4431', context: 'Outbound to Tornado Cash, prior FINMA enforcement rumors.' },
     },
     {
       label: 'Caribbean Trust Partners — Cayman nominee',
-      values: { name: 'Caribbean Trust Partners', country: 'KY', context: 'Pandora Papers reference; 100% nominee owner.' },
+      values: { name: 'Caribbean Trust Partners', country: 'KY', customer_id: 'C-4435', context: 'Pandora Papers reference; 100% nominee owner.' },
     },
     {
       label: 'Maria Rossi — low-risk individual',
-      values: { name: 'Maria Rossi', country: 'IT', context: 'Salary-funded retail customer, no known adverse media.' },
+      values: { name: 'Maria Rossi', country: 'IT', customer_id: 'C-4424', context: 'Salary-funded retail customer, no known adverse media.' },
     },
   ],
 

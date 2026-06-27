@@ -17,11 +17,21 @@ echo ""
 
 # Load env
 if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
+  set -a
+  source .env
+  set +a
 fi
 
 BACKEND_PORT=${BACKEND_PORT:-3069}
 FRONTEND_PORT=${FRONTEND_PORT:-3068}
+
+if [ -n "${DATABASE_URL:-}" ]; then
+  DB_NAME=${DB_NAME:-$(node -e "const u=new URL(process.env.DATABASE_URL); console.log(decodeURIComponent(u.pathname.replace(/^\\//,'')))")}
+  DB_USER=${DB_USER:-$(node -e "const u=new URL(process.env.DATABASE_URL); console.log(decodeURIComponent(u.username || 'postgres'))")}
+  DB_HOST=${DB_HOST:-$(node -e "const u=new URL(process.env.DATABASE_URL); console.log(u.hostname || 'localhost')")}
+  DB_PORT=${DB_PORT:-$(node -e "const u=new URL(process.env.DATABASE_URL); console.log(u.port || '5432')")}
+  export DB_NAME DB_USER DB_HOST DB_PORT
+fi
 
 # Kill processes on used ports + any prior project processes
 echo -e "${YELLOW}Cleaning up ports $BACKEND_PORT and $FRONTEND_PORT...${NC}"

@@ -11,7 +11,7 @@ export default function KycProfilesPage() {
       statusKey="status"
       fields={[
         { key: 'profile_id',  label: 'Profile ID' },
-        { key: 'customer_id', label: 'Customer ID' },
+        { key: 'customer_id', label: 'Customer ID', ref: 'customers' },
         { key: 'doc_type',    label: 'Doc Type' },
         { key: 'expires_at',  label: 'Expires',   type: 'date' },
         { key: 'status',      label: 'Status',    type: 'select', options: ['verified','expiring','expired','enhanced','pending'] },

@@ -216,6 +216,10 @@ export const fincenExportsApi = {
     const qs = filing_type ? `?filing_type=${encodeURIComponent(filing_type)}` : '';
     return request(`/fincen-exports/mappings${qs}`);
   },
+  caseRefs:     (filing_type) => {
+    const qs = filing_type ? `?filing_type=${encodeURIComponent(filing_type)}` : '';
+    return request(`/fincen-exports/case-refs${qs}`);
+  },
   createMapping: (d) => request('/fincen-exports/mappings', { method: 'POST', body: JSON.stringify(d) }),
   export:       (filing_type, case_ref) => request(`/fincen-exports/${filing_type}/${encodeURIComponent(case_ref)}`),
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AIResultDisplay from './AIResultDisplay';
 import { getAIHistory, getAISamples } from '../services/api';
+import ReferenceSelect, { inferReferenceSource } from './ReferenceSelect';
 
 /**
  * Generic AI feature page.
@@ -96,7 +97,7 @@ export default function AIPage({ title, subtitle, feature, inputs, run, buttonLa
         </div>
       </div>
 
-      {samples && samples.length > 0 && inputs && inputs.length > 0 && (
+      {samples && samples.length > 0 && (
         <div className="card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <span style={{ fontWeight: 600, marginRight: 8 }}>Sample Fill:</span>
@@ -121,7 +122,15 @@ export default function AIPage({ title, subtitle, feature, inputs, run, buttonLa
             {inputs.map((i) => (
               <div key={i.key} className={`form-group ${i.type === 'textarea' ? 'full-width' : ''}`}>
                 <label>{i.label}</label>
-                {i.type === 'select' ? (
+                {inferReferenceSource(i) ? (
+                  <ReferenceSelect
+                    source={inferReferenceSource(i)}
+                    value={values[i.key] ?? ''}
+                    onChange={(v) => setField(i.key, v)}
+                    allowEmpty
+                    emptyLabel={i.label.includes('optional') || i.label.includes('Optional') ? 'Optional' : `Select ${i.label.toLowerCase()}`}
+                  />
+                ) : i.type === 'select' ? (
                   <select value={values[i.key] ?? ''} onChange={(e) => setField(i.key, e.target.value)}>
                     <option value="">—</option>
                     {(i.options || []).map((o) => <option key={o} value={o}>{o}</option>)}

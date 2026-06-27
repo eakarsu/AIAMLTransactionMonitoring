@@ -215,6 +215,39 @@ tr:hover td { background: rgba(59,130,246,0.04); }
   display: flex; justify-content: flex-end; gap: 8px;
 }
 
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detail-field {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.detail-label {
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  color: #e2e8f0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.detail-field:has(.detail-value > textarea),
+.detail-field:has(.detail-value > pre) {
+  grid-column: 1 / -1;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -246,6 +279,23 @@ tr:hover td { background: rgba(59,130,246,0.04); }
 .form-group select:focus,
 .form-group textarea:focus { border-color: #3b82f6; }
 .form-group textarea { min-height: 70px; resize: vertical; }
+
+.date-input-stack {
+  display: grid;
+  gap: 7px;
+}
+
+.date-quick-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.btn.tiny {
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 11px;
+}
 
 .full-width { grid-column: 1 / -1; }
 
@@ -865,5 +915,3 @@ tr:hover td { background: rgba(59,130,246,0.04); }
   .login-card { padding: 22px; }
   .login-brand { font-size: 17px; }
 }
-
-

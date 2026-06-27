@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { webhooksApi, isCommander } from '../services/api';
+import TableDetailModal from '../components/TableDetailModal';
+
+const WEBHOOK_SAMPLES = [
+  { label: 'SAR bridge', values: { name: 'FinCEN SAR Bridge', url: 'https://httpbin.org/post', secret: 'sec_fincen_2026', events: 'sar.filed,sar.created', active: true } },
+  { label: 'OFAC blocked property', values: { name: 'OFAC Blocked Property', url: 'https://httpbin.org/post', secret: 'sec_ofac_2026', events: 'sanctions_hits.confirmed', active: true } },
+  { label: 'Compliance Slack relay', values: { name: 'Compliance Slack Relay', url: 'https://httpbin.org/post', secret: 'sec_slack_demo', events: 'alert.created,case.escalated', active: false } },
+];
 
 export default function WebhooksPage() {
   const [rows, setRows] = useState([]);
   const [err, setErr] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [draft, setDraft] = useState({ name: '', url: '', secret: '', events: '', active: true });
   const [deliveries, setDeliveries] = useState({ id: null, rows: [], loading: false });
   const [testResult, setTestResult] = useState(null);
@@ -32,9 +40,10 @@ export default function WebhooksPage() {
   };
   const handleDelete = async (row) => {
     if (!window.confirm(`Delete webhook ${row.name || row.url}?`)) return;
-    try { await webhooksApi.remove(row.id); load(); } catch (e) { alert(e.message); }
+    try { await webhooksApi.remove(row.id); setSelected(null); load(); } catch (e) { alert(e.message); }
   };
   const handleEdit = (row) => {
+    setSelected(null);
     setEditing(row);
     setDraft({
       name: row.name || '',
@@ -95,6 +104,13 @@ export default function WebhooksPage() {
       {commander && (
         <div className="card">
           <h3 style={{ marginTop: 0 }}>{editing ? `Edit webhook #${editing.id}` : 'New webhook'}</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+            {WEBHOOK_SAMPLES.map((sample) => (
+              <button key={sample.label} type="button" className="btn secondary" onClick={() => { setEditing(null); setDraft(sample.values); }}>
+                {sample.label}
+              </button>
+            ))}
+          </div>
           <div className="form-grid">
             <div className="form-group"><label>Name</label>
               <input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} /></div>
@@ -127,30 +143,48 @@ export default function WebhooksPage() {
       <div className="table-wrap">
         <table>
           <thead>
-            <tr><th>ID</th><th>Name</th><th>URL</th><th>Events</th><th>Active</th><th>Actions</th></tr>
+            <tr><th>ID</th><th>Name</th><th>URL</th><th>Events</th><th>Active</th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id}>
+              <tr key={r.id} onClick={() => setSelected(r)} style={{ cursor: 'pointer' }}>
                 <td>{r.id}</td>
                 <td>{r.name}</td>
                 <td style={{ maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.url}</td>
                 <td>{r.events}</td>
                 <td>{String(r.active)}</td>
-                <td>
-                  <button className="btn secondary" onClick={() => openDeliveries(r)} style={{ marginRight: 6 }}>Deliveries</button>
-                  {commander && (
-                    <>
-                      <button className="btn secondary" onClick={() => handleEdit(r)} style={{ marginRight: 6 }}>Edit</button>
-                      <button className="btn danger" onClick={() => handleDelete(r)}>Delete</button>
-                    </>
-                  )}
-                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <TableDetailModal
+        title="Webhook Details"
+        row={selected}
+        onClose={() => setSelected(null)}
+        fields={[
+          { key: 'id', label: 'ID' },
+          { key: 'name', label: 'Name' },
+          { key: 'url', label: 'URL' },
+          { key: 'secret', label: 'Secret' },
+          { key: 'events', label: 'Events' },
+          { key: 'active', label: 'Active' },
+          { key: 'created_at', label: 'Created At', render: (r) => r.created_at ? new Date(r.created_at).toLocaleString() : '—' },
+          { key: 'updated_at', label: 'Updated At', render: (r) => r.updated_at ? new Date(r.updated_at).toLocaleString() : '—' },
+        ]}
+        actions={selected && (
+          <>
+            <button className="btn secondary" onClick={() => { const row = selected; setSelected(null); openDeliveries(row); }}>Deliveries</button>
+            {commander && (
+              <>
+                <button className="btn secondary" onClick={() => handleEdit(selected)}>Edit</button>
+                <button className="btn danger" onClick={() => handleDelete(selected)}>Delete</button>
+              </>
+            )}
+          </>
+        )}
+      />
 
       {deliveries.id && (
         <div className="card" style={{ marginTop: 16 }}>

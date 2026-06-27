@@ -11,7 +11,7 @@ export default function AlertsPage() {
       statusKey="status"
       fields={[
         { key: 'alert_id',    label: 'Alert ID' },
-        { key: 'customer_id', label: 'Customer ID' },
+        { key: 'customer_id', label: 'Customer ID', ref: 'customers' },
         { key: 'rule',        label: 'Rule' },
         { key: 'severity',    label: 'Severity',  type: 'select', options: ['low','medium','high','critical'] },
         { key: 'opened_at',   label: 'Opened',    type: 'datetime-local' },

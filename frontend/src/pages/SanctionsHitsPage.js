@@ -11,8 +11,8 @@ export default function SanctionsHitsPage() {
       statusKey="status"
       fields={[
         { key: 'hit_id',        label: 'Hit ID' },
-        { key: 'customer_id',   label: 'Customer ID' },
-        { key: 'list',          label: 'Watchlist' },
+        { key: 'customer_id',   label: 'Customer ID', ref: 'customers' },
+        { key: 'list',          label: 'Watchlist', ref: 'watchlists' },
         { key: 'score',         label: 'Score',         type: 'number' },
         { key: 'matched_field', label: 'Matched Field' },
         { key: 'status',        label: 'Status',        type: 'select', options: ['open','review','confirmed','false_positive','closed'] },
