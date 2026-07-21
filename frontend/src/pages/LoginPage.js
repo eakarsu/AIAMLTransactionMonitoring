@@ -4,8 +4,8 @@ import { login, setToken, setStoredUser } from '../services/api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('compliance@aml.io');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -58,9 +58,7 @@ export default function LoginPage() {
           {loading ? <><span className="spinner" />Authenticating...</> : 'Sign In'}
         </button>
 
-        <p className="login-hint">
-          Demo: <code>compliance@aml.io</code> / <code>admin123</code>
-        </p>
+        <p className="login-hint">Use an account provisioned by an administrator.</p>
       </form>
     </div>
   );

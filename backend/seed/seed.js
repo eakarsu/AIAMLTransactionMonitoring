@@ -1,7 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
+const { hashPassword } = require('../lib/security');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+
+if (process.env.ALLOW_DESTRUCTIVE_SEED !== 'true') {
+  throw new Error('Destructive demo reset blocked. Set ALLOW_DESTRUCTIVE_SEED=true explicitly.');
+}
 
 function buildPoolConfig() {
   if (process.env.DATABASE_URL) {
@@ -13,7 +18,7 @@ function buildPoolConfig() {
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME || 'aml_monitoring',
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    password: process.env.DB_PASSWORD,
   };
 }
 
@@ -64,6 +69,8 @@ async function run() {
     await client.query(schema2);
     const schema3 = fs.readFileSync(path.join(__dirname, '..', 'migrations', '003_pass7.sql'), 'utf8');
     await client.query(schema3);
+    const schema4 = fs.readFileSync(path.join(__dirname, '..', 'migrations', '004_hardening.sql'), 'utf8');
+    await client.query(schema4);
 
     // ─── customers (15) ────────────────────────────────────────────
     console.log('[seed] inserting customers...');
@@ -535,14 +542,13 @@ async function run() {
 
     // ─── RBAC users (3) ───────────────────────────────────────────
     console.log('[seed] inserting users...');
-    const users = [
-      ['compliance@aml.io', 'admin123',   'Compliance Officer', 'commander'],
-      ['analyst@aml.io',    'analyst123', 'AML Analyst',        'analyst'],
-      ['viewer@aml.io',     'viewer123',  'View-Only',          'viewer'],
-    ];
+    const users = [];
+    if (process.env.SEED_ADMIN_EMAIL && process.env.SEED_ADMIN_PASSWORD) {
+      users.push([process.env.SEED_ADMIN_EMAIL, hashPassword(process.env.SEED_ADMIN_PASSWORD), process.env.SEED_ADMIN_NAME || 'Compliance Administrator', 'commander', process.env.SEED_TENANT_ID || 'default']);
+    }
     for (const u of users) {
       await client.query(
-        'INSERT INTO users (email,password,name,role) VALUES ($1,$2,$3,$4)',
+        'INSERT INTO users (email,password,name,role,tenant_id) VALUES ($1,$2,$3,$4,$5)',
         u
       );
     }

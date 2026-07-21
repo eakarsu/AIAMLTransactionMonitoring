@@ -7,9 +7,11 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const { authenticateToken } = require('./middleware/auth');
 const pool = require('./config/database');
 const { fireWebhook } = require('./services/webhooks');
+const { getJwtSecret } = require('./lib/security');
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3069;
+try { getJwtSecret(); } catch (error) { console.error(`Configuration error: ${error.message}`); process.exit(1); }
 
 // Middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -36,6 +38,16 @@ app.use('/api/auth', require('./routes/auth'));
 
 // Everything below requires a Bearer token.
 app.use('/api', authenticateToken);
+app.use('/api/monitoring', require('./routes/monitoringWorkflow'));
+app.use('/api/monitoring/watchlists', require('./routes/watchlistIngestion'));
+app.use('/api', (req, res, next) => {
+  if (process.env.ENABLE_LEGACY_GLOBAL_ROUTES === 'true' || req.path.startsWith('/monitoring')) return next();
+  return res.status(503).json({
+    error: 'Legacy global routes are disabled because they are not tenant-isolated',
+    supported_workflow: '/api/monitoring',
+    development_override: 'ENABLE_LEGACY_GLOBAL_ROUTES=true',
+  });
+});
 
 // 18 AML CRUD entities
 app.use('/api/customers',           require('./routes/customers'));
