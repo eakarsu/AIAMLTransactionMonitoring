@@ -41,13 +41,14 @@ app.use('/api', authenticateToken);
 app.use('/api/monitoring', require('./routes/monitoringWorkflow'));
 app.use('/api/monitoring/watchlists', require('./routes/watchlistIngestion'));
 app.use('/api', (req, res, next) => {
-  if (process.env.ENABLE_LEGACY_GLOBAL_ROUTES === 'true' || req.path.startsWith('/monitoring')) return next();
+  if (process.env.ENABLE_LEGACY_GLOBAL_ROUTES === 'true' || req.path.startsWith('/monitoring') || req.path.startsWith('/runtime-ai')) return next();
   return res.status(503).json({
     error: 'Legacy global routes are disabled because they are not tenant-isolated',
     supported_workflow: '/api/monitoring',
     development_override: 'ENABLE_LEGACY_GLOBAL_ROUTES=true',
   });
 });
+app.use('/api/runtime-ai', require('./routes/runtimeAi'));
 
 // 18 AML CRUD entities
 app.use('/api/customers',           require('./routes/customers'));
