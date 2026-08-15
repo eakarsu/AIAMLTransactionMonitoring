@@ -1,3 +1,4 @@
+import GeneratedAiResponse from './GeneratedAiResponse';
 import React, { useEffect, useState } from 'react';
 import { caseWorkflowApi } from '../services/api';
 import ReferenceSelect, { sourceForCaseType } from '../components/ReferenceSelect';
@@ -127,7 +128,7 @@ export default function CaseWorkflowPage() {
       {result && (
         <div className="card" style={{ marginTop: 16 }}>
           <h3 style={{ marginTop: 0 }}>Last Transition</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', color: '#cbd5e1' }}>{JSON.stringify(result, null, 2)}</pre>
+          <GeneratedAiResponse response={result} />
         </div>
       )}
       {history.length > 0 && (
