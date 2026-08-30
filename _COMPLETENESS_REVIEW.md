@@ -57,3 +57,7 @@ Choose one production workflow for financial crime monitoring, connect its autho
 5. **Implemented locally:** `.env.example`, explicit checksum-tracked migrations, explicit administrator provisioning, opt-in destructive demo reset, non-destructive `start.sh`, backend tests, and `.github/workflows/ci.yml` were added. Database-backed integration and full UI end-to-end tests require a prepared test database and were not fabricated.
 
 **Risk remediation evidence:** `start.sh` no longer installs packages, kills ports, creates databases, starts PostgreSQL, or seeds data. `backend/routes/auth.js` no longer authenticates hardcoded demo users or plaintext passwords, and `backend/server.js` refuses startup with an unsafe/missing JWT secret.
+
+## Extension (2026-08-30)
+
+Added `/api/monitoring/investigations/graph`, which groups connected alerts by account, customer and counterparty into explainable clusters. It reports shared references and maximum risk while retaining human disposition and prohibiting automatic filing. Licensed feeds and SAR transport remain open.
