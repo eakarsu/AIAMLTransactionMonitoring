@@ -133,22 +133,22 @@ export const login = (email, password) =>
 export const getMe = () => request('/auth/me');
 
 // AI endpoints — 16 AML verbs
-export const aiSarNarrativeDraft     = (body) => request('/ai/sar-narrative-draft',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiTypologyDetect        = (body) => request('/ai/typology-detect',         { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiKycRefreshSummary     = (body) => request('/ai/kyc-refresh-summary',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiSanctionNameMatch     = (body) => request('/ai/sanction-name-match',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiBeneficialOwnerTrace  = (body) => request('/ai/beneficial-owner-trace',  { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiTransactionAnomaly    = (body) => request('/ai/transaction-anomaly',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiPeerGroupCompare      = (body) => request('/ai/peer-group-compare',      { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiExecutiveBrief        = (body) => request('/ai/executive-brief',         { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiCustomerRiskScore     = (body) => request('/ai/customer-risk-score',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiEddQuestionnaire      = (body) => request('/ai/edd-questionnaire',       { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiInvestigationSummary  = (body) => request('/ai/investigation-summary',   { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiRegulatoryFilingDraft = (body) => request('/ai/regulatory-filing-draft', { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiSourceOfFundsExplain  = (body) => request('/ai/source-of-funds-explain', { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiJurisdictionalRisk    = (body) => request('/ai/jurisdictional-risk',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiFalsePositiveClassifier = (body) => request('/ai/false-positive-classifier', { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiNetworkAnalysis       = (body) => request('/ai/network-analysis',        { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiSarNarrativeDraft     = (body, options = {}) => request('/ai/sar-narrative-draft',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiTypologyDetect        = (body, options = {}) => request('/ai/typology-detect',         { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiKycRefreshSummary     = (body, options = {}) => request('/ai/kyc-refresh-summary',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiSanctionNameMatch     = (body, options = {}) => request('/ai/sanction-name-match',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiBeneficialOwnerTrace  = (body, options = {}) => request('/ai/beneficial-owner-trace',  { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiTransactionAnomaly    = (body, options = {}) => request('/ai/transaction-anomaly',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiPeerGroupCompare      = (body, options = {}) => request('/ai/peer-group-compare',      { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiExecutiveBrief        = (body, options = {}) => request('/ai/executive-brief',         { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiCustomerRiskScore     = (body, options = {}) => request('/ai/customer-risk-score',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiEddQuestionnaire      = (body, options = {}) => request('/ai/edd-questionnaire',       { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiInvestigationSummary  = (body, options = {}) => request('/ai/investigation-summary',   { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiRegulatoryFilingDraft = (body, options = {}) => request('/ai/regulatory-filing-draft', { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiSourceOfFundsExplain  = (body, options = {}) => request('/ai/source-of-funds-explain', { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiJurisdictionalRisk    = (body, options = {}) => request('/ai/jurisdictional-risk',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiFalsePositiveClassifier = (body, options = {}) => request('/ai/false-positive-classifier', { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiNetworkAnalysis       = (body, options = {}) => request('/ai/network-analysis',        { ...options, method: 'POST', body: JSON.stringify(body || {}) });
 
 // AI history
 export const getAIHistory = (feature, limit = 25) => {
@@ -172,8 +172,8 @@ export const markNotificationRead   = (id) => request(`/notifications/${id}/read
 export const markAllNotificationsRead = () => request('/notifications/mark-all-read', { method: 'POST' });
 
 // Pass 7 — backlog
-export const aiAdverseMediaScreen     = (body) => request('/ai/adverse-media-screen',     { method: 'POST', body: JSON.stringify(body || {}) });
-export const aiKycOnboardingPrescreen = (body) => request('/ai/kyc-onboarding-prescreen', { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiAdverseMediaScreen     = (body, options = {}) => request('/ai/adverse-media-screen',     { ...options, method: 'POST', body: JSON.stringify(body || {}) });
+export const aiKycOnboardingPrescreen = (body, options = {}) => request('/ai/kyc-onboarding-prescreen', { ...options, method: 'POST', body: JSON.stringify(body || {}) });
 
 export const getPeerBenchmarks = (params = {}) => {
   const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v != null && v !== ''))).toString();

@@ -12,7 +12,7 @@ export default function AIPeerGroupComparePage() {
         { key: 'customer_id', label: 'Customer ID', placeholder: 'C-4421' },
         { key: 'peer_group',  label: 'Peer Group',  placeholder: 'e.g. US corporate, trading sector' },
       ]}
-      run={(v) => aiPeerGroupCompare(v)}
+      run={(v, requestOptions) => aiPeerGroupCompare(v, requestOptions)}
     />
   );
 }

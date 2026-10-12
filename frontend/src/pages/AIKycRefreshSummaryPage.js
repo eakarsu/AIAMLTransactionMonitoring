@@ -8,8 +8,10 @@ export default function AIKycRefreshSummaryPage() {
       title="AI · KYC Refresh Summary"
       feature="kyc-refresh-summary"
       subtitle="Prioritize the KYC refresh queue: expired, expiring, enhanced."
-      inputs={[]}
-      run={(v) => aiKycRefreshSummary(v)}
+      inputs={[
+        { key: 'focus', label: 'Queue Focus (optional)', type: 'textarea', placeholder: 'e.g. expired documents, enhanced due diligence, high-risk customers.' },
+      ]}
+      run={(v, requestOptions) => aiKycRefreshSummary(v, requestOptions)}
     />
   );
 }

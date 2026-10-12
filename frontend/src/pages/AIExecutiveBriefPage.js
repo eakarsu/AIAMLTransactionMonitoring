@@ -11,7 +11,7 @@ export default function AIExecutiveBriefPage() {
       inputs={[
         { key: 'notes', label: 'Bias / Notes', type: 'textarea', placeholder: 'Optional bias for the brief.' },
       ]}
-      run={(v) => aiExecutiveBrief(v)}
+      run={(v, requestOptions) => aiExecutiveBrief(v, requestOptions)}
     />
   );
 }

@@ -14,7 +14,7 @@ export default function AIAdverseMediaScreenPage() {
         { key: 'customer_id', label: 'Customer ID (optional)', placeholder: 'C-4426' },
         { key: 'context',     label: 'Context',      type: 'textarea', placeholder: 'PEP onboarding, alleged kickback news in EU press.' },
       ]}
-      run={(v) => aiAdverseMediaScreen(v)}
+      run={(v, requestOptions) => aiAdverseMediaScreen(v, requestOptions)}
     />
   );
 }

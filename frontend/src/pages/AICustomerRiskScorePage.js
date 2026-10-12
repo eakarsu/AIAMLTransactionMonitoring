@@ -12,7 +12,7 @@ export default function AICustomerRiskScorePage() {
         { key: 'customer_id',   label: 'Customer ID',          placeholder: 'C-4421' },
         { key: 'signals_notes', label: 'Additional Signals',   type: 'textarea', placeholder: 'Free-form risk signals.' },
       ]}
-      run={(v) => aiCustomerRiskScore(v)}
+      run={(v, requestOptions) => aiCustomerRiskScore(v, requestOptions)}
     />
   );
 }

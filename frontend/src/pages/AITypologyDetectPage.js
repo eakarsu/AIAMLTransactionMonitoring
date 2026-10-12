@@ -11,7 +11,7 @@ export default function AITypologyDetectPage() {
       inputs={[
         { key: 'focus', label: 'Focus / Hint', type: 'textarea', placeholder: 'Optional bias, e.g. weight toward crypto mixer exposure.' },
       ]}
-      run={(v) => aiTypologyDetect(v)}
+      run={(v, requestOptions) => aiTypologyDetect(v, requestOptions)}
     />
   );
 }

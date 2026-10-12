@@ -11,7 +11,7 @@ export default function AITransactionAnomalyPage() {
       inputs={[
         { key: 'hints', label: 'Hints / Filter', type: 'textarea', placeholder: 'Optional filter, e.g. cross-border wires above $50k.' },
       ]}
-      run={(v) => aiTransactionAnomaly(v)}
+      run={(v, requestOptions) => aiTransactionAnomaly(v, requestOptions)}
     />
   );
 }

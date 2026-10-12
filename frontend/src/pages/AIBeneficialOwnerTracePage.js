@@ -12,7 +12,7 @@ export default function AIBeneficialOwnerTracePage() {
         { key: 'entity_id', label: 'Entity ID (customer_id)', placeholder: 'C-4423' },
         { key: 'context',   label: 'Context',                 type: 'textarea', placeholder: 'Optional context (e.g. BVI shell, nominees).' },
       ]}
-      run={(v) => aiBeneficialOwnerTrace(v)}
+      run={(v, requestOptions) => aiBeneficialOwnerTrace(v, requestOptions)}
     />
   );
 }

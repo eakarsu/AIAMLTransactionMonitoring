@@ -12,7 +12,7 @@ export default function AIJurisdictionalRiskPage() {
         { key: 'country', label: 'Country', placeholder: 'e.g. Russia, British Virgin Islands' },
         { key: 'context', label: 'Context', type: 'textarea', placeholder: 'Optional risk signals.' },
       ]}
-      run={(v) => aiJurisdictionalRisk(v)}
+      run={(v, requestOptions) => aiJurisdictionalRisk(v, requestOptions)}
     />
   );
 }

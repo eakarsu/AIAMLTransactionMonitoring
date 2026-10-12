@@ -13,7 +13,7 @@ export default function AIRegulatoryFilingDraftPage() {
         { key: 'period',      label: 'Period',      placeholder: 'e.g. 2026-05 or 2026-W20' },
         { key: 'data_notes',  label: 'Data Notes',  type: 'textarea', placeholder: 'Items to include in the body.' },
       ]}
-      run={(v) => aiRegulatoryFilingDraft(v)}
+      run={(v, requestOptions) => aiRegulatoryFilingDraft(v, requestOptions)}
     />
   );
 }

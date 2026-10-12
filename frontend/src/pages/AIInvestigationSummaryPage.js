@@ -12,7 +12,7 @@ export default function AIInvestigationSummaryPage() {
         { key: 'inv_id',  label: 'Investigation ID', placeholder: 'INV-2026-001' },
         { key: 'context', label: 'Context',          type: 'textarea', placeholder: 'Optional context.' },
       ]}
-      run={(v) => aiInvestigationSummary(v)}
+      run={(v, requestOptions) => aiInvestigationSummary(v, requestOptions)}
     />
   );
 }

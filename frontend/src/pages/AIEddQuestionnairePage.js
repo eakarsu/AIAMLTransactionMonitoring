@@ -12,7 +12,7 @@ export default function AIEddQuestionnairePage() {
         { key: 'customer_id', label: 'Customer ID',  placeholder: 'C-4426' },
         { key: 'trigger',     label: 'EDD Trigger',  type: 'textarea', placeholder: 'e.g. PEP designation, OFAC SDN match, crypto mixer exposure.' },
       ]}
-      run={(v) => aiEddQuestionnaire(v)}
+      run={(v, requestOptions) => aiEddQuestionnaire(v, requestOptions)}
     />
   );
 }

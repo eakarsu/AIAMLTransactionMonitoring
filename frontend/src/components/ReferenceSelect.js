@@ -113,7 +113,7 @@ export function sourceForCaseType(caseType) {
 export function inferReferenceSource(field = {}) {
   if (field.ref) return field.ref;
   const key = field.key;
-  if (key === 'customer_id' || key === 'entity_id') return 'customers';
+  if (key === 'customer_id' || key === 'entity_id' || key === 'seed_id') return 'customers';
   if (key === 'account_id') return 'accounts';
   if (key === 'txn_id') return 'transactions';
   if (key === 'hit_id') return 'sanctionsHits';
@@ -184,4 +184,10 @@ export default function ReferenceSelect({
       {error && <div style={{ color: '#fca5a5', fontSize: 12, marginTop: 4 }}>Failed to load options: {error}</div>}
     </div>
   );
+}
+
+export async function getReferenceOptions(source) {
+  const config = SOURCES[source]; if (!config) return [];
+  const rows = await config.list();
+  return (Array.isArray(rows) ? rows : []).map((row) => ({ value: config.value(row), label: config.label(row) })).filter((option) => option.value !== undefined && option.value !== null && String(option.value).trim() !== '');
 }

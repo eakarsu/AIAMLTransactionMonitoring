@@ -14,7 +14,7 @@ export default function AISourceOfFundsExplainPage() {
         { key: 'claimed_amount_usd',label: 'Claimed Amount (USD)',type: 'number' },
         { key: 'notes',             label: 'Notes',               type: 'textarea' },
       ]}
-      run={(v) => aiSourceOfFundsExplain(v)}
+      run={(v, requestOptions) => aiSourceOfFundsExplain(v, requestOptions)}
     />
   );
 }

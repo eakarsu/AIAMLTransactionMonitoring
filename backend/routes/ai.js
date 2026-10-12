@@ -85,11 +85,11 @@ const SAMPLES = {
   ],
 
   'kyc-refresh-summary': [
-    { label: 'Full queue — all KYC profiles', values: {} },
-    { label: 'Expired documents focus', values: {} },
-    { label: 'Enhanced due diligence focus', values: {} },
-    { label: 'Refresh due this quarter', values: {} },
-    { label: 'High-risk customer refresh queue', values: {} },
+    { label: 'Full queue — all KYC profiles', values: { focus: 'Review the complete refresh queue and prioritize the most urgent evidence gaps.' } },
+    { label: 'Expired documents focus', values: { focus: 'Prioritize profiles with expired identity or beneficial-ownership documents.' } },
+    { label: 'Enhanced due diligence focus', values: { focus: 'Prioritize enhanced due diligence profiles with unresolved PEP, sanctions, or source-of-funds concerns.' } },
+    { label: 'Refresh due this quarter', values: { focus: 'Prioritize refreshes due this quarter and identify the evidence needed to complete each review.' } },
+    { label: 'High-risk customer refresh queue', values: { focus: 'Prioritize high-risk customers using jurisdiction, ownership, transaction, PEP, and sanctions indicators.' } },
   ],
 
   'sanction-name-match': [
@@ -125,7 +125,7 @@ const SAMPLES = {
       values: {
         name: 'Caribbean Trust Partners',
         country: 'KY',
-        dob: '',
+        dob: '1998-06-15',
         context: 'OFAC 50% rule via opaque Trustco Nominee #4 (100% nominee owner); entity onboarding paused.',
       },
     },
@@ -134,7 +134,7 @@ const SAMPLES = {
       values: {
         name: 'Sahel Mining Corp',
         country: 'ML',
-        dob: '',
+        dob: '2008-03-01',
         context: 'UN 1267 candidate score 71 (false positive prior), but EU Consolidated re-match this cycle.',
       },
     },
@@ -603,8 +603,9 @@ router.post('/kyc-refresh-summary', async (req, res) => {
       const r = await pool.query('SELECT * FROM kyc_profiles ORDER BY refresh_due ASC LIMIT 30');
       profiles = r.rows;
     }
-    const result = await ai.kycRefreshSummary(profiles);
-    await record('kyc-refresh-summary', { profile_count: profiles.length }, result);
+    const focus = req.body?.focus || '';
+    const result = await ai.kycRefreshSummary(profiles, focus);
+    await record('kyc-refresh-summary', { profile_count: profiles.length, focus }, result);
     res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

@@ -15,7 +15,7 @@ export default function AIKycOnboardingPrescreenPage() {
         { key: 'type',           label: 'Applicant Type',         placeholder: 'corporate | individual | trust' },
         { key: 'notes',          label: 'Onboarding Notes',       type: 'textarea', placeholder: 'Projected throughput, source of funds claim, related parties...' },
       ]}
-      run={(v) => aiKycOnboardingPrescreen(v)}
+      run={(v, requestOptions) => aiKycOnboardingPrescreen(v, requestOptions)}
     />
   );
 }

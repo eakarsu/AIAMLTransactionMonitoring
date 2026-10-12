@@ -278,7 +278,7 @@ export default function CrudPage({ title, subtitle, api, fields, statusKey, allo
               </thead>
               <tbody>
                 {pagedRows.map((row) => (
-                  <tr key={row.id} onClick={() => setSelectedRow(row)} style={{ cursor: 'pointer' }}>
+                  <tr key={row.id} onClick={() => setSelectedRow(row)} style={{ cursor: 'pointer' }} tabIndex={0} onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) { event.preventDefault(); (() => setSelectedRow(row))(event); } }}>
                     {fields.map((f) => <td key={f.key}>{renderCell(row, f)}</td>)}
                   </tr>
                 ))}

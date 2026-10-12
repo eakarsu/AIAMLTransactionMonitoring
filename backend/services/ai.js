@@ -170,7 +170,7 @@ async function typologyDetect(transactions) {
 // ──────────────────────────────────────────────────────────────
 // 3. KYC Refresh Summary
 // ──────────────────────────────────────────────────────────────
-async function kycRefreshSummary(profiles = []) {
+async function kycRefreshSummary(profiles = [], focus = '') {
   const sys = `${SYSTEM_PROMPT} Summarize KYC refresh queue. Return strict JSON:
 {
   "queue_health_score": number,
@@ -186,7 +186,7 @@ async function kycRefreshSummary(profiles = []) {
   "recommended_actions": [string],
   "summary": string
 }`;
-  const usr = `KYC profiles:\n${JSON.stringify(profiles, null, 2)}`;
+  const usr = `Queue focus: ${focus || 'Review the complete queue'}\nKYC profiles:\n${JSON.stringify(profiles, null, 2)}`;
   const r = await callOpenRouter(sys, usr);
   return safeJsonParse(r, { summary: typeof r === 'string' ? r : 'No response', prioritized_refreshes: [] });
 }

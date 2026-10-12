@@ -11,7 +11,7 @@ export default function AIFalsePositiveClassifierPage() {
       inputs={[
         { key: 'hints', label: 'Hints / Filter', type: 'textarea', placeholder: 'Optional filter, e.g. high severity only.' },
       ]}
-      run={(v) => aiFalsePositiveClassifier(v)}
+      run={(v, requestOptions) => aiFalsePositiveClassifier(v, requestOptions)}
     />
   );
 }

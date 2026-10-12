@@ -11,10 +11,10 @@ export default function AISanctionNameMatchPage() {
       inputs={[
         { key: 'name',    label: 'Name',    placeholder: 'e.g. Vladimir Petrov' },
         { key: 'country', label: 'Country', placeholder: 'RU' },
-        { key: 'dob',     label: 'DOB',     placeholder: 'YYYY-MM-DD' },
+        { key: 'dob',     label: 'DOB / Incorporation Date (optional)', type: 'date' },
         { key: 'context', label: 'Context', type: 'textarea', placeholder: 'PEP, onboarding amount, related accounts, etc.' },
       ]}
-      run={(v) => aiSanctionNameMatch(v)}
+      run={(v, requestOptions) => aiSanctionNameMatch(v, requestOptions)}
     />
   );
 }

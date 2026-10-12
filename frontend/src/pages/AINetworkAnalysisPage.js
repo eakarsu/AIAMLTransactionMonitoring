@@ -12,7 +12,7 @@ export default function AINetworkAnalysisPage() {
         { key: 'seed_id', label: 'Seed Customer ID', placeholder: 'C-4421' },
         { key: 'depth',   label: 'Depth',            type: 'number', placeholder: '2' },
       ]}
-      run={(v) => aiNetworkAnalysis(v)}
+      run={(v, requestOptions) => aiNetworkAnalysis(v, requestOptions)}
     />
   );
 }
