@@ -59,6 +59,7 @@ import ProductionControlsPage from './pages/ProductionControlsPage';
 
 // Compliance custom views
 import CustomViewsPage from './pages/CustomViewsPage';
+import FeaturePackPanel from './pages/FeaturePackPanel';
 
 import LoginPage from './pages/LoginPage';
 import { getToken } from './services/api';
@@ -85,6 +86,7 @@ function ShellRoutes() {
         <div style={{ padding: '24px 32px' }}>
           <Routes>
         <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/feature-pack" element={<FeaturePackPanel />} />
         <Route path="/codex/operations" element={<CodexOperationsFeature />} />
 
             <Route path="/" element={<Dashboard />} />

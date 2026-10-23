@@ -72,6 +72,7 @@ app.use('/api/regulatory-filings',  require('./routes/regulatoryFilings'));
 
 // AI routes (16 sub-endpoints + history under /api/ai)
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/feature-pack-router', require('./routes/featurePack'));
 
 // Cross-cutting
 app.use('/api/notifications', require('./routes/notifications'));

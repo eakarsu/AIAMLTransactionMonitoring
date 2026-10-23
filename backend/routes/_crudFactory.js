@@ -39,7 +39,10 @@ function buildCrud({ table, fields, idPrefix = '', webhookPrefix = null }) {
 
   router.get('/', async (req, res) => {
     try {
-      const r = await pool.query(`SELECT * FROM ${table} ORDER BY id DESC`);
+      const q = String(req.query.q || '').trim();
+      if (!q) { const r = await pool.query(`SELECT * FROM ${table} ORDER BY id DESC`); return res.json(r.rows); }
+      const cond = fields.map((f) => `CAST(${f} AS TEXT) ILIKE $1`).join(' OR ');
+      const r = await pool.query(`SELECT * FROM ${table} WHERE (${cond}) ORDER BY id DESC`, [`%${q}%`]);
       res.json(r.rows);
     } catch (e) { res.status(500).json({ error: e.message }); }
   });
